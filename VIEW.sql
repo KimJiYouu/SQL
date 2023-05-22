@@ -1,0 +1,72 @@
+--VIEW는 제한적인 자료를 보기 위해 사용하는 가상테이블이다.
+--VIEW를 이용해서 필요한 컬럼을 정의해두면 관리가 용이해진다.
+--VIEW를 통해서 데이터에 접근하면 비교적 안전하게 데이터를 관리할 수 있다.
+
+SELECT * FROM EMP_DETAILS_VIEW;
+
+--뷰를 생성하려면 권한이 필요함
+SELECT * FROM USER_SYS_PRIVS;
+
+--CREATE OR REPLACE VIEW
+--뷰의 생성
+CREATE OR REPLACE VIEW EMPS_VIEW
+AS (
+SELECT EMPLOYEE_ID, 
+       FIRST_NAME||' '||LAST_NAME AS NAME,
+       JOB_ID,
+       SALARY
+FROM EMPLOYEES
+);
+
+SELECT * FROM EMPS_VIEW;
+
+--뷰의 수정 OR REPLACE
+CREATE OR REPLACE VIEW EMPS_VIEW
+AS (
+SELECT EMPLOYEE_ID,
+       FIRST_NAME||' '||LAST_NAME AS NAME,
+       JOB_ID,
+       SALARY,
+       COMMISSION_PCT
+FROM EMPLOYEES
+WHERE JOB_ID = 'IT_PROG');
+
+--복합뷰
+--JOIN을 이용해서 필요한 데이터를 뷰로 생성함
+CREATE OR REPLACE VIEW EMPS_VIEW2 
+AS (
+SELECT E.EMPLOYEE_ID,
+       FIRST_NAME||' '||LAST_NAME AS NAME,
+       D.DEPARTMENT_NAME,
+       J.JOB_TITLE
+FROM EMPLOYEES E LEFT JOIN DEPARTMENTS D ON E.DEPARTMENT_ID = D.DEPARTMENT_ID
+                 LEFT JOIN JOBS J ON E.JOB_ID = J.JOB_ID); 
+                 
+            
+SELECT * FROM EMPS_VIEW2 WHERE NAME LIKE '%Nancy%';
+
+--뷰의 삭제
+--DROP VIEW
+--DROP VIEW EMPS_VIEW;
+
+--------------------------------------------------------------------------------
+--VIEW를 통한 DML은 가능하긴 하지만 몇가지 제약사항이 있다.
+--1. 가상열이면 안됨 (NAME은 가상열)
+INSERT INTO EMPS_VIEW2 ( EMPLOYEE_ID, NAME, DEPARTMENT_NAME, JOB_TITLE) VALUES(1000, 'DEMO HONG', 'DEMO IT', 'DEMOT IT PROG');
+--2. JOIN을 이용한 테이블인 경우에도 안된다
+INSERT INTO EMPS_VIEW2(DEPARTMENT_NAME) VALUES('DEMO');
+--3. 원본 테이블 NOT NULL제약이 있다면 안된다
+INSERT INTO EMPS_VIEW(EMPLOYEE, JOB_TITLE) VALUES(300, 'TEST');
+
+--뷰의 제약조건 WITH READ ONLY
+--DML문장이 해당 뷰에 적용되지 않음
+CREATE OR REPLACE VIEW EMPS_VIEW2
+AS(
+SELECT EMPLOYEE_ID, FIRST_NAME, LAST_NAME, SALARY
+FROM EMPLOYEES
+) WITH READ ONLY;
+
+SELECT * FROM EMPS_VIEW2;
+DESC EMPS_VIEW2;
+
+
